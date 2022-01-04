@@ -10,6 +10,8 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 const Airtable = require('airtable');
 const base = new Airtable({apiKey: process.env.AIRTABLE_API_KEY}).base(process.env.AIRTABLE_BASE);
 
+const pick = (obj, keys) => Object.assign({}, ...keys.map(key => ({ [key]: obj[key] })))
+
 app.use(express.json());
 
 app.post("/placeorder", async (req, res) => {
@@ -17,23 +19,53 @@ app.post("/placeorder", async (req, res) => {
     // TODO: validate stuff first 
     // if fails HTTP 400: Bad Request
 
-    const msg = {
-        to: req.body.email, 
-        from: process.env.FROM_EMAIL,
-        cc: process.env.CC_EMAIL,
-        template_id: "d-0f57292c8eaf473ea842e6937676ac04",
-        asm: {
-            groupId: 16532 // orders unsubscribe group
-        },
-        dynamic_template_data: {
-            orderDetails: req.body.orderDetails
+    let {orderDetails, ...order} = req.body
+    order = flatten(order)
+
+    switch(order.type){
+        case "art": {
+            order = pick(order, ['course', 'type', 'color', 'size', 'holeIndex', 'email', 'notes'])
+            break;
+        }
+        case "event": {
+            order = pick(order, [
+                'course', 'type', 'color', 'size', 'holeIndex', 'email', 'notes',
+                'event.playerNames', 'event.awardName'
+            ])
+            break;
+        }
+        case "hio": {
+            order = pick(order, [
+                'course', 'type', 'color', 'size', 'holeIndex', 'email', 'notes',
+                'hio.date', 'hio.playerName', 'hio.clubUsed', 'hio.witnesses.0', 'hio.witnesses.1', 'hio.witnesses.2', 'hio.distance'
+            ])
+            break;
+        }
+        default: {
+            res.status(400).send("Invalid Order Type")
         }
     }
 
+    for(let key in order) {
+        orders[key] = String(order[key])
+    }
+
+    console.log(order)
+
     sgMail
-        .send(msg)
+        .send({
+            to: req.body.email, 
+            from: process.env.FROM_EMAIL,
+            cc: process.env.CC_EMAIL,
+            template_id: "d-0f57292c8eaf473ea842e6937676ac04",
+            asm: {
+                groupId: 16532 // orders unsubscribe group
+            },
+            dynamic_template_data: {
+                orderDetails
+            }
+        })
         .then(() => {
-            // TODO: store the order locally somewhere, or even better, in google sheets
             console.log('Email sent to ' + req.body.email);
             res.status(201).send() // HTTP 201: Created
         })
@@ -42,17 +74,13 @@ app.post("/placeorder", async (req, res) => {
             res.status(500).send(); // HTTP 500: Internal Server Error
         })
 
+    order.holeIndex = String(order.holeIndex)
 
-    const order = (({orderDetails, ...rest}) => rest)(req.body)
-    order.holeIndex = Number(order.holeIndex)
-
-    console.log(flatten(order))
-
-    base.table("Orders").create(flatten(order), (err) => {
+    base.table("Orders").create(order, (err, record) => {
         if(err) 
             console.error(err);
         else 
-            console.log("Saved to airtable")
+            console.log("Saved to airtable" + record.OrderID)
     })
 })
 
