@@ -1,8 +1,14 @@
 require("dotenv").config()
+const flatten = require('flat')
+
 const express = require("express");
 const app = express();
+
 const sgMail = require('@sendgrid/mail')
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+
+const Airtable = require('airtable');
+const base = new Airtable({apiKey: process.env.AIRTABLE_API_KEY}).base(process.env.AIRTABLE_BASE);
 
 app.use(express.json());
 
@@ -35,6 +41,13 @@ app.post("/placeorder", async (req, res) => {
             console.error(error);
             res.status(500).send(); // HTTP 500: Internal Server Error
         })
+
+    base.create([{ fields: flatten(req.body) }], (err) => {
+        if(err) 
+            console.error(err);
+        else 
+            console.log("Saved to airtable")
+    })
 })
 
 app.listen(3001, () => console.log("listening on port 3001"))
