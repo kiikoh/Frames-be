@@ -42,9 +42,12 @@ app.post("/placeorder", async (req, res) => {
             res.status(500).send(); // HTTP 500: Internal Server Error
         })
 
-    console.log(flatten(req.body))
 
-    base.table("Orders").create([{ fields: flatten(req.body) }], (err) => {
+    const order = (({orderDetails, ...rest}) => rest)(req.body)
+
+    console.log(flatten(order))
+
+    base.table("Orders").create({ fields: flatten(order) }, (err) => {
         if(err) 
             console.error(err);
         else 
