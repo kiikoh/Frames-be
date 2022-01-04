@@ -47,7 +47,7 @@ app.post("/placeorder", async (req, res) => {
     }
 
     for(let key in order) {
-        orders[key] = String(order[key])
+        order[key] = String(order[key])
     }
 
     console.log(order)
