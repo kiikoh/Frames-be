@@ -47,7 +47,7 @@ app.post("/placeorder", async (req, res) => {
 
     console.log(flatten(order))
 
-    base.table("Orders").create({ fields: flatten(order) }, (err) => {
+    base.table("Orders").create(flatten(order), (err) => {
         if(err) 
             console.error(err);
         else 
