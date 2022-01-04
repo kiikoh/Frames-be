@@ -44,6 +44,7 @@ app.post("/placeorder", async (req, res) => {
 
 
     const order = (({orderDetails, ...rest}) => rest)(req.body)
+    order.holeIndex = Number(order.holeIndex)
 
     console.log(flatten(order))
 
