@@ -24,19 +24,19 @@ app.post("/placeorder", async (req, res) => {
 
     switch(order.type){
         case "art": {
-            order = pick(order, ['course', 'type', 'color', 'size', 'holeIndex', 'email', 'notes'])
+            order = pick(order, ['course', 'type', 'color', 'size', 'holeIndex', 'imgSrc', 'email', 'notes'])
             break;
         }
         case "event": {
             order = pick(order, [
-                'course', 'type', 'color', 'size', 'holeIndex', 'email', 'notes',
+                'course', 'type', 'color', 'size', 'holeIndex', 'imgSrc', 'email', 'notes',
                 'event.playerNames', 'event.awardName'
             ])
             break;
         }
         case "hio": {
             order = pick(order, [
-                'course', 'type', 'color', 'size', 'holeIndex', 'email', 'notes',
+                'course', 'type', 'color', 'size', 'holeIndex', 'imgSrc', 'email', 'notes',
                 'hio.date', 'hio.playerName', 'hio.clubUsed', 'hio.witnesses.0', 'hio.witnesses.1', 'hio.witnesses.2', 'hio.distance'
             ])
             break;
