@@ -34,7 +34,8 @@ app.post("/placeorder", async (req, res) => {
             ])
             break;
         }
-        case "hio": {
+        case "hio": 
+        case "hiowb": {
             order = pick(order, [
                 'course', 'type', 'color', 'size', 'holeIndex', 'imgSrc', 'email', 'notes',
                 'hio.date', 'hio.playerName', 'hio.clubUsed', 'hio.witnesses.0', 'hio.witnesses.1', 'hio.witnesses.2', 'hio.distance'
